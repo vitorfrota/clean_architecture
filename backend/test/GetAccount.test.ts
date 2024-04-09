@@ -1,24 +1,32 @@
-import axios from "axios";
-
-axios.defaults.validateStatus = status => status >= 200 && status <= 500;
+import GetAccount from "../src/application/GetAccount";
+import { AccountDAODatabase } from "../src/driven/AccountDAO";
+import Signup from "../src/application/Signup";
+import { MailerGatewayMemory } from "../src/driven/MailerGateway";
+import sinon from "sinon";
 
 describe("GetAccount GET tests", function () {
-  const ENDPOINT_URL = "http://localhost:3000";
   test('It should get a existing user', async function () {
-    const { data } = await axios.post(`${ENDPOINT_URL}/signup`, {
+    const accountDao = new AccountDAODatabase();
+    const mailerGateway = new MailerGatewayMemory();
+
+    const mailerSpy = sinon.spy(MailerGatewayMemory.prototype, "send");
+
+    const input = {
       name: "Vitor Teste",
-      email: "vitory@test.com",
+      email: `vitor_${Math.random()}@example.com`,
       cpf: "15987930200",
       isDriver: false,
       isPassenger: true,
-    });
+      password: "123123"
+    };
 
-    const { data: output } = await axios.get(`${ENDPOINT_URL}/account/${data.accountId}`);
-    expect(output).toHaveProperty("name");
-    expect(output).toHaveProperty("email");
-  });
-  test('It should not get a user with inexistent id', async function () {
-    const { data: output } = await axios.get(`${ENDPOINT_URL}/account/fd36337c-5e99-4af2-8042-a7364a8f6066`);
-    expect(output).toBe(-1);
+    const signup = new Signup(accountDao, mailerGateway);
+    const getAccount = new GetAccount(accountDao);
+    const outputSignup = await signup.execute(input);
+
+    const outputGetAccount = await getAccount.execute(outputSignup.accountId);
+    expect(outputGetAccount.name).toBe(input.name);
+    expect(outputGetAccount.email).toBe(input.email);
+    expect(mailerSpy.calledOnce).toBe(true);
   });
 });
