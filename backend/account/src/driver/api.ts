@@ -2,6 +2,7 @@ import express from "express";
 import GetAccount from "../application/GetAccount";
 import Signup from "../application/Signup";
 import { AccountDAODatabase } from "../driven/AccountDAO";
+import { MailerGatewayMemory } from "../driven/MailerGateway";
 
 const app = express();
 app.use(express.json());
@@ -21,7 +22,8 @@ app.get("/account/:accountId", async function (request, response) {
 app.post("/signup", async function (request, response) {
 	try {
     const accountDao = new AccountDAODatabase();
-    const signupUseCase = new Signup(accountDao);
+    const mailerGateway = new MailerGatewayMemory();
+    const signupUseCase = new Signup(accountDao, mailerGateway);
     const output = await signupUseCase.execute(request.body);
     response.status(200).json(output);
 	} catch (err: any) {
