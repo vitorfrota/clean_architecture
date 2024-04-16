@@ -1,20 +1,23 @@
 import sinon from "sinon";
-import { AccountGatewayInMemory } from "../src/application/AccountGateway";
-import RequestRide from "../src/application/RequestRide";
-import { RideDAOInMemory } from "../src/infra/RideDAO";
-import GetRide from "../src/application/GetRide";
+import { AccountGatewayInMemory } from "../src/infra/gateways/AccountGateway";
+import RequestRide from "../src/application/usecases/RequestRide";
+import { RideRepositoryDatabase, RideRepositoryInMemory } from "../src/infra/repositories/RideRepository";
+import GetRide from "../src/application/usecases/GetRide";
+import DatabaseConnection, { PgPromiseAdapter } from "../src/infra/database/DatabaseConnection";
 
+let databaseConnection: DatabaseConnection;
 let getRide: GetRide;
 let input: any;
 let requestRide: RequestRide;
 let stubAccountGateway: sinon.SinonStub;
 
 beforeEach(()=> {
+  databaseConnection = new PgPromiseAdapter();
   const accountGateway = new AccountGatewayInMemory();
-  const rideDAO = new RideDAOInMemory();
+  const rideRepository = new RideRepositoryDatabase(databaseConnection);
   stubAccountGateway = sinon.stub(AccountGatewayInMemory.prototype, "findById");
-  getRide = new GetRide(rideDAO);
-  requestRide = new RequestRide(rideDAO, accountGateway);
+  getRide = new GetRide(rideRepository);
+  requestRide = new RequestRide(rideRepository, accountGateway);
   input = {
     passengerId: crypto.randomUUID(),
     from: { lat: -3.0284276, long: -59.9696824 },
@@ -27,7 +30,7 @@ test("Deve solicitar uma corrida", async function(){
   const outputRequestRide = await requestRide.execute(input);
   expect(outputRequestRide.rideId).toBeDefined();
   const outputGetRide = await getRide.execute(outputRequestRide.rideId);
-  expect(outputGetRide.ride_id).toBe(outputRequestRide.rideId);
+  expect(outputGetRide.rideId).toBe(outputRequestRide.rideId);
   expect(outputGetRide.status).toBe("requested");
 });
 
@@ -50,4 +53,5 @@ test("Não deve solicitar uma corrida se já existir uma outra corrida com statu
 
 afterEach(()=> {
   stubAccountGateway.restore();
+  databaseConnection.close();
 });
