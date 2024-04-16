@@ -8,7 +8,8 @@ export default class Ride {
     readonly toLat: number, 
     readonly toLong: number, 
     readonly date: Date, 
-    readonly status: string
+    private status: string,
+    private driverId?: string,
   ) {}
 
   static create(passengerId: string, fromLat: number, fromLong: number, toLat: number, toLong: number) {
@@ -18,7 +19,21 @@ export default class Ride {
     return new Ride(rideId, passengerId, fromLat, fromLong, toLat, toLong, date, status);
   }
 
-  static restore(rideId: string, passengerId: string, fromLat: number, fromLong: number, toLat: number, toLong: number, date: Date, status: string) {
-    return new Ride(rideId, passengerId, fromLat, fromLong, toLat, toLong, date, status);
+  static restore(rideId: string, passengerId: string, fromLat: number, fromLong: number, toLat: number, toLong: number, date: Date, status: string, driverId?: string) {
+    return new Ride(rideId, passengerId, fromLat, fromLong, toLat, toLong, date, status, driverId);
+  }
+
+  accept(driverId: string){
+    if(this.status !== 'requested') throw new Error('Ride is not requested');
+    this.status = 'accepted';
+    this.driverId = driverId;
+  }
+
+  getDriverId() {
+    return this.driverId;
+  }
+
+  getStatus(){
+    return this.status;
   }
 }

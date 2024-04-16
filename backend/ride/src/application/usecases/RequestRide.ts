@@ -10,8 +10,8 @@ export default class RequestRide {
     const account = await this.accountGateway.findById(input.passengerId);
     if(!account) throw new Error("Account not exists");
     if(!account.isPassenger) throw new Error("Account is not passenger");
-    const existingRide = await this.rideRepository.findByPassengerId(input.passengerId);
-    if(existingRide && existingRide.status !== "completed") throw new Error("Ride already exists");
+    const existingRide = await this.rideRepository.hasActiveRideByPassengerId(input.passengerId);
+    if(existingRide) throw new Error("Ride already exists");
     const ride = Ride.create(input.passengerId, input.from.lat, input.from.long, input.to.lat, input.to.long);
     await this.rideRepository.save(ride);
     return {
