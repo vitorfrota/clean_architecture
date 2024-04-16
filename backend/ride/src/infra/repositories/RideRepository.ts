@@ -60,7 +60,7 @@ export class RideRepositoryDatabase implements RideRepository {
   async findById(rideId: string): Promise<Ride | undefined> {
     const [ride] = await this.connection.query("select * from cccat16.ride where ride_id = $1", [rideId]);
     if(!ride) return;
-    return Ride.restore(ride.ride_id, ride.passenger_id, ride.from_lat, ride.from_long, ride.to_lat, ride.to_long, ride.date, ride.status);
+    return Ride.restore(ride.ride_id, ride.passenger_id, ride.from_lat, ride.from_long, ride.to_lat, ride.to_long, ride.date, ride.status, ride.driver_id);
   }
 
   async save(ride: Ride): Promise<void> {

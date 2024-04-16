@@ -29,6 +29,11 @@ export default class Ride {
     this.driverId = driverId;
   }
 
+  start(){
+    if(this.status !== 'accepted') throw new Error('Ride is not accepted');
+    this.status = 'in_progress';
+  }
+
   getDriverId() {
     return this.driverId;
   }
